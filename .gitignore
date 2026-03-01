@@ -205,3 +205,23 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# =============================================================
+# Project-specific ignores
+# =============================================================
+
+# Data — raw and processed datasets (too large for Git)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Results — model checkpoints (can be large)
+results/models/*
+!results/models/.gitkeep
+
+# Results — generated figures and tables (regenerable)
+results/figures/*
+!results/figures/.gitkeep
+results/tables/*
+!results/tables/.gitkeep
