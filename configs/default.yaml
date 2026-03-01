@@ -1,0 +1,72 @@
+# ============================================================
+# Default experiment configuration
+# ============================================================
+
+# --- Dataset ---
+dataset:
+  name: NSL-KDD
+  raw_dir: data/raw
+  processed_dir: data/processed
+  # Files expected in raw_dir:
+  #   KDDTrain+.csv, KDDTest+.csv
+
+# --- Preprocessing ---
+preprocessing:
+  # Features treated as categorical (one-hot encoded)
+  categorical_features:
+    - protocol_type
+    - service
+    - flag
+  # All remaining numeric features are standardised (zero mean, unit variance)
+  clip_to_train_range: true   # clip adversarial samples to training min/max
+
+# --- Data splitting ---
+split:
+  train: 0.70
+  val: 0.15
+  test: 0.15
+  random_seed: 42
+
+# --- Model ---
+model:
+  type: MLP
+  hidden_layers: [64, 32]
+  activation: relu
+  output_activation: sigmoid   # binary classification
+
+# --- Training ---
+training:
+  epochs: 50
+  batch_size: 256
+  learning_rate: 0.001
+  optimizer: adam
+  loss: binary_cross_entropy
+  early_stopping:
+    enabled: true
+    patience: 5
+    monitor: val_loss
+
+# --- Adversarial attacks ---
+attacks:
+  fgsm:
+    epsilon: 0.1               # default single-epsilon value
+  pgd:
+    epsilon: 0.1
+    step_size: 0.01
+    num_steps: 40
+
+# --- Adversarial training (defense) ---
+adversarial_training:
+  enabled: true
+  attack: fgsm                 # attack used to generate augmented samples
+  epsilon: 0.1
+
+# --- Epsilon sweep ---
+epsilon_sweep:
+  values: [0.0, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5]
+
+# --- Paths ---
+paths:
+  model_save_dir: results/models
+  figures_dir: results/figures
+  tables_dir: results/tables
