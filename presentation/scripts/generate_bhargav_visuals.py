@@ -79,7 +79,7 @@ def slide1_title() -> None:
     # Divider
     ax.plot([1.2, 14.8], [5.4, 5.4], color="white", alpha=0.3, linewidth=1)
 
-    ax.text(1.2, 4.7, "Midterm Project Presentation",
+    ax.text(1.2, 4.7, "Project Presentation",
             color="white", fontsize=18, va="center", style="italic")
 
     ax.text(1.2, 3.5, "Authors", color=MUTED, fontsize=14, va="center")
