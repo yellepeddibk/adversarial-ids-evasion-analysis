@@ -1,5 +1,5 @@
 """
-Generate visuals for Bhargav's slides in the midterm presentation.
+Generate visuals for Bhargav's slides in the project presentation.
 
 Slides covered:
   - Slide 1  : Title card
@@ -19,15 +19,24 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 # ---------------------------------------------------------------------------
-# Style constants
+# Style constants (matched to team slide style)
 # ---------------------------------------------------------------------------
+BG = "#050607"
+TITLE_RED = "#FF2A2A"
+DIVIDER_GOLD = "#C5A43B"
+
 NAVY = "#0B1F3A"
+PANEL_BASE = "#101A2F"
 ACCENT = "#1F8FFF"
 DANGER = "#E63946"
-SAFE = "#2A9D8F"
-LIGHT = "#F5F7FA"
-DARK_TEXT = "#1A1A1A"
-MUTED = "#6C757D"
+SAFE = "#00D084"
+CYAN = "#00B8FF"
+PINK = "#FF2D72"
+YELLOW = "#D9B24C"
+
+TEXT_MAIN = "#EAF0FF"
+TEXT_MID = "#B5C2DE"
+TEXT_MUTED = "#8F9BB5"
 
 OUT_DIR = Path(__file__).resolve().parents[1] / "visuals"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -40,55 +49,62 @@ def _save(fig: plt.Figure, name: str) -> None:
     print(f"wrote {path}")
 
 
+def _header(ax, title: str) -> None:
+    ax.text(0.3, 8.4, title, ha="left", va="center", fontsize=18, fontweight="bold", color=TITLE_RED)
+    ax.plot([0.3, 15.7], [7.9, 7.9], color=DIVIDER_GOLD, alpha=0.9, linewidth=1)
+
+
+def _panel(ax, x, y, w, h, edge_color, title=None, alpha=0.95):
+    panel = FancyBboxPatch(
+        (x, y), w, h,
+        boxstyle="round,pad=0.03,rounding_size=0.02",
+        linewidth=1.6,
+        edgecolor=edge_color,
+        facecolor=PANEL_BASE,
+        alpha=alpha,
+    )
+    ax.add_patch(panel)
+    if title:
+        ax.text(x + 0.25, y + h - 0.4, title, color=edge_color, fontsize=12, fontweight="bold", va="top")
+
+
 # ---------------------------------------------------------------------------
 # Slide 1 - Title card
 # ---------------------------------------------------------------------------
 def slide1_title() -> None:
     fig, ax = plt.subplots(figsize=(16, 9))
-    fig.patch.set_facecolor(NAVY)
-    ax.set_facecolor(NAVY)
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(BG)
     ax.set_xlim(0, 16)
     ax.set_ylim(0, 9)
     ax.axis("off")
 
-    # Decorative grid lines (subtle cyber feel)
-    for x in range(0, 17):
-        ax.axvline(x, color="#FFFFFF", alpha=0.04, linewidth=0.5)
-    for y in range(0, 10):
-        ax.axhline(y, color="#FFFFFF", alpha=0.04, linewidth=0.5)
+    _header(ax, "Project Presentation")
 
-    # Accent bar
-    ax.add_patch(mpatches.Rectangle((0.8, 6.5), 0.15, 1.6, color=ACCENT))
+    _panel(ax, 0.9, 2.2, 14.2, 4.9, CYAN)
 
     ax.text(
-        1.2, 7.6,
+        1.4, 6.4,
         "Adversarial Robustness Analysis of",
-        color="white", fontsize=28, fontweight="bold", va="center",
+        color=TEXT_MAIN, fontsize=28, fontweight="bold", va="center",
     )
     ax.text(
-        1.2, 6.85,
+        1.4, 5.7,
         "Neural Network-Based Intrusion Detection Systems",
-        color="white", fontsize=28, fontweight="bold", va="center",
+        color=TEXT_MAIN, fontsize=22, fontweight="bold", va="center",
     )
     ax.text(
-        1.2, 6.1,
+        1.4, 5.0,
         "Using FGSM and PGD Attacks",
         color=ACCENT, fontsize=24, fontweight="bold", va="center",
     )
 
-    # Divider
-    ax.plot([1.2, 14.8], [5.4, 5.4], color="white", alpha=0.3, linewidth=1)
+    ax.text(1.4, 3.8, "Authors", color=TEXT_MUTED, fontsize=13, va="center")
+    ax.text(1.4, 3.2, "Conrad Miller   ·   Prathik Bengaluru Prabhakara   ·   Bhargav Yellepeddi",
+            color=TEXT_MAIN, fontsize=16, va="center")
 
-    ax.text(1.2, 4.7, "Project Presentation",
-            color="white", fontsize=18, va="center", style="italic")
-
-    ax.text(1.2, 3.5, "Authors", color=MUTED, fontsize=14, va="center")
-    ax.text(1.2, 2.8, "Conrad Miller   ·   Prathik Bengaluru Prabhakara   ·   Bhargav Yellepeddi",
-            color="white", fontsize=18, va="center")
-
-    # Footer tag
-    ax.text(15.2, 0.6, "NSL-KDD  |  PyTorch  |  Adversarial ML",
-            color=MUTED, fontsize=11, ha="right", va="center", style="italic")
+    ax.text(15.2, 0.6, "NSL-KDD   |   PyTorch   |   Adversarial ML",
+            color=TEXT_MUTED, fontsize=11, ha="right", va="center")
 
     _save(fig, "slide01_title.png")
 
@@ -96,10 +112,10 @@ def slide1_title() -> None:
 # ---------------------------------------------------------------------------
 # Slide 2 - Motivation
 # ---------------------------------------------------------------------------
-def _draw_box(ax, x, y, w, h, text, fc, ec=DARK_TEXT, fontsize=12, color="white", bold=True):
+def _draw_box(ax, x, y, w, h, text, fc, ec=CYAN, fontsize=12, color=TEXT_MAIN, bold=True):
     box = FancyBboxPatch(
         (x, y), w, h,
-        boxstyle="round,pad=0.02,rounding_size=0.15",
+        boxstyle="round,pad=0.02,rounding_size=0.02",
         linewidth=1.5, edgecolor=ec, facecolor=fc,
     )
     ax.add_patch(box)
@@ -110,7 +126,7 @@ def _draw_box(ax, x, y, w, h, text, fc, ec=DARK_TEXT, fontsize=12, color="white"
     )
 
 
-def _arrow(ax, x1, y1, x2, y2, color=DARK_TEXT, lw=2):
+def _arrow(ax, x1, y1, x2, y2, color=TEXT_MID, lw=2):
     a = FancyArrowPatch(
         (x1, y1), (x2, y2),
         arrowstyle="->,head_width=8,head_length=10",
@@ -121,42 +137,45 @@ def _arrow(ax, x1, y1, x2, y2, color=DARK_TEXT, lw=2):
 
 def slide2_motivation() -> None:
     fig, ax = plt.subplots(figsize=(16, 9))
-    fig.patch.set_facecolor("white")
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(BG)
     ax.set_xlim(0, 16)
     ax.set_ylim(0, 9)
     ax.axis("off")
 
-    ax.text(8, 8.4, "Why Adversarial Robustness in IDS?",
-            ha="center", fontsize=24, fontweight="bold", color=DARK_TEXT)
+    _header(ax, "Motivation & Relevance")
+
+    ax.text(8, 7.3, "Why Adversarial Robustness in IDS?",
+        ha="center", fontsize=20, fontweight="bold", color=TEXT_MAIN)
 
     # Row 1: Normal traffic -> IDS -> Allowed
-    _draw_box(ax, 0.6, 6.0, 3.2, 1.1, "Normal Traffic", SAFE)
-    _arrow(ax, 3.9, 6.55, 5.8, 6.55)
-    _draw_box(ax, 5.9, 6.0, 3.2, 1.1, "IDS Model", NAVY)
-    _arrow(ax, 9.2, 6.55, 11.0, 6.55, color=SAFE, lw=2.5)
-    _draw_box(ax, 11.1, 6.0, 4.0, 1.1, "Correctly Allowed  ✓", SAFE)
+    _draw_box(ax, 0.6, 5.6, 3.2, 1.1, "Normal Traffic", PANEL_BASE, ec=SAFE)
+    _arrow(ax, 3.9, 6.15, 5.8, 6.15)
+    _draw_box(ax, 5.9, 5.6, 3.2, 1.1, "IDS Model", PANEL_BASE, ec=CYAN)
+    _arrow(ax, 9.2, 6.15, 11.0, 6.15, color=SAFE, lw=2.5)
+    _draw_box(ax, 11.1, 5.6, 4.0, 1.1, "Correctly Allowed  ✓", PANEL_BASE, ec=SAFE)
 
     # Row 2: Attack traffic -> IDS -> Detected
-    _draw_box(ax, 0.6, 4.2, 3.2, 1.1, "Attack Traffic", DANGER)
-    _arrow(ax, 3.9, 4.75, 5.8, 4.75)
-    _draw_box(ax, 5.9, 4.2, 3.2, 1.1, "IDS Model", NAVY)
-    _arrow(ax, 9.2, 4.75, 11.0, 4.75, color=SAFE, lw=2.5)
-    _draw_box(ax, 11.1, 4.2, 4.0, 1.1, "Correctly Detected  ✓", SAFE)
+    _draw_box(ax, 0.6, 3.8, 3.2, 1.1, "Attack Traffic", PANEL_BASE, ec=PINK)
+    _arrow(ax, 3.9, 4.35, 5.8, 4.35)
+    _draw_box(ax, 5.9, 3.8, 3.2, 1.1, "IDS Model", PANEL_BASE, ec=CYAN)
+    _arrow(ax, 9.2, 4.35, 11.0, 4.35, color=SAFE, lw=2.5)
+    _draw_box(ax, 11.1, 3.8, 4.0, 1.1, "Correctly Detected  ✓", PANEL_BASE, ec=SAFE)
 
     # Row 3: Perturbed attack -> IDS -> Evades
-    _draw_box(ax, 0.6, 2.0, 3.2, 1.4,
-              "Attack Traffic\n+ ε perturbation", DANGER, fontsize=11)
-    _arrow(ax, 3.9, 2.7, 5.8, 2.7)
-    _draw_box(ax, 5.9, 2.0, 3.2, 1.4, "IDS Model", NAVY, fontsize=12)
-    _arrow(ax, 9.2, 2.7, 11.0, 2.7, color=DANGER, lw=2.5)
-    _draw_box(ax, 11.1, 2.0, 4.0, 1.4,
-              "Misclassified as Normal  ✗\n(Evasion)", DANGER, fontsize=11)
+    _draw_box(ax, 0.6, 1.7, 3.2, 1.4,
+          "Attack Traffic\n+ ε perturbation", PANEL_BASE, ec=DANGER, fontsize=11)
+    _arrow(ax, 3.9, 2.4, 5.8, 2.4)
+    _draw_box(ax, 5.9, 1.7, 3.2, 1.4, "IDS Model", PANEL_BASE, ec=CYAN, fontsize=12)
+    _arrow(ax, 9.2, 2.4, 11.0, 2.4, color=DANGER, lw=2.5)
+    _draw_box(ax, 11.1, 1.7, 4.0, 1.4,
+          "Misclassified as Normal  ✗\n(Evasion)", PANEL_BASE, ec=DANGER, fontsize=11)
 
     # Bottom callout
     ax.text(
         8, 0.7,
         "Small, crafted perturbations preserve attack semantics but fool the model.",
-        ha="center", fontsize=14, color=DARK_TEXT, style="italic",
+        ha="center", fontsize=13, color=TEXT_MID, style="italic",
     )
 
     _save(fig, "slide02_motivation.png")
@@ -167,15 +186,15 @@ def slide2_motivation() -> None:
 # ---------------------------------------------------------------------------
 def slide3_objectives() -> None:
     fig, ax = plt.subplots(figsize=(16, 9))
-    fig.patch.set_facecolor("white")
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(BG)
     ax.set_xlim(0, 16)
     ax.set_ylim(0, 9)
     ax.axis("off")
 
-    ax.text(8, 8.2, "Project Objectives",
-            ha="center", fontsize=26, fontweight="bold", color=DARK_TEXT)
-    ax.text(8, 7.5, "A complete attack–defense pipeline",
-            ha="center", fontsize=15, color=MUTED, style="italic")
+    _header(ax, "Project Objectives")
+    ax.text(8, 7.2, "A complete attack-defense pipeline",
+        ha="center", fontsize=15, color=TEXT_MID, style="italic")
 
     steps = [
         ("1", "Train\nBaseline MLP", NAVY),
@@ -195,22 +214,22 @@ def slide3_objectives() -> None:
         x = start_x + i * (box_w + gap)
         _draw_box(ax, x, y, box_w, box_h, "", color)
         ax.text(x + box_w / 2, y + box_h - 0.45, num,
-                ha="center", va="center", color="white",
+            ha="center", va="center", color=TEXT_MAIN,
                 fontsize=22, fontweight="bold")
         ax.text(x + box_w / 2, y + box_h / 2 - 0.25, label,
-                ha="center", va="center", color="white", fontsize=13,
+            ha="center", va="center", color=TEXT_MAIN, fontsize=13,
                 fontweight="bold")
         if i < len(steps) - 1:
             ax2 = x + box_w
             _arrow(ax, ax2 + 0.05, y + box_h / 2,
                    ax2 + gap - 0.05, y + box_h / 2,
-                   color=DARK_TEXT, lw=2)
+               color=TEXT_MID, lw=2)
 
     # Bottom labels for each phase
     phase_labels = ["Setup", "Attack", "Analyze", "Defend", "Conclude"]
     for i, lbl in enumerate(phase_labels):
         x = start_x + i * (box_w + gap) + box_w / 2
-        ax.text(x, y - 0.5, lbl, ha="center", color=MUTED,
+        ax.text(x, y - 0.5, lbl, ha="center", color=TEXT_MUTED,
                 fontsize=12, style="italic")
 
     _save(fig, "slide03_objectives.png")
@@ -227,13 +246,13 @@ def _icon_circle(ax, cx, cy, r, color, glyph):
 
 def slide14_challenges() -> None:
     fig, ax = plt.subplots(figsize=(16, 9))
-    fig.patch.set_facecolor("white")
+    fig.patch.set_facecolor(BG)
+    ax.set_facecolor(BG)
     ax.set_xlim(0, 16)
     ax.set_ylim(0, 9)
     ax.axis("off")
 
-    ax.text(8, 8.3, "Challenges and Limitations",
-            ha="center", fontsize=26, fontweight="bold", color=DARK_TEXT)
+    _header(ax, "Challenges and Limitations")
 
     items = [
         (
@@ -264,26 +283,46 @@ def slide14_challenges() -> None:
     ]
 
     # Two-column layout: 3 left, 2 right
-    col_x = [1.0, 8.4]
-    row_y = [6.0, 4.0, 2.0]
+    # Axis: ylim(0,9), divider at y=7.9 → usable area: 0.3 – 7.75
+    # Left col: 3 cards filling the full usable height
+    # Right col: 2 cards vertically centered on the same span
+    col_x  = [0.4, 8.2]
+    col_w  = 7.3
+    BOTTOM = 0.35
+    TOP    = 7.75
 
-    positions = [
-        (col_x[0], row_y[0]),
-        (col_x[0], row_y[1]),
-        (col_x[0], row_y[2]),
-        (col_x[1], row_y[0]),
-        (col_x[1], row_y[1]),
+    panel_h_L = (TOP - BOTTOM - 2 * 0.25) / 3   # ≈ 2.27
+    gap_L     = 0.25
+
+    # Left column row bottoms (top card first)
+    left_rows = [
+        TOP - panel_h_L,
+        TOP - panel_h_L - (panel_h_L + gap_L),
+        BOTTOM,
     ]
 
-    for (glyph, color, title, body), (x, y) in zip(items, positions):
-        # Icon circle
-        _icon_circle(ax, x + 0.6, y + 0.75, 0.55, color, glyph)
-        # Title
-        ax.text(x + 1.5, y + 1.1, title, fontsize=15,
-                fontweight="bold", color=DARK_TEXT, va="center")
-        # Body
-        ax.text(x + 1.5, y + 0.35, body, fontsize=11,
-                color=MUTED, va="center")
+    # Right column: 2 cards, same gap, centered on [BOTTOM, TOP]
+    total_right = 2 * panel_h_L + gap_L
+    r_start = BOTTOM + (TOP - BOTTOM - total_right) / 2
+    right_rows = [r_start + panel_h_L + gap_L, r_start]
+
+    positions = [
+        (col_x[0], left_rows[0]),
+        (col_x[0], left_rows[1]),
+        (col_x[0], left_rows[2]),
+        (col_x[1], right_rows[0]),
+        (col_x[1], right_rows[1]),
+    ]
+
+    panel_hs = [panel_h_L, panel_h_L, panel_h_L, panel_h_L, panel_h_L]
+
+    for (glyph, color, title, body), (x, y), ph in zip(items, positions, panel_hs):
+        _panel(ax, x, y, col_w, ph, color)
+        _icon_circle(ax, x + 0.7, y + ph / 2, 0.52, color, glyph)
+        ax.text(x + 1.65, y + ph * 0.72, title, fontsize=13,
+            fontweight="bold", color=TEXT_MAIN, va="center")
+        ax.text(x + 1.65, y + ph * 0.32, body, fontsize=10,
+            color=TEXT_MID, va="center")
 
     _save(fig, "slide14_challenges.png")
 
