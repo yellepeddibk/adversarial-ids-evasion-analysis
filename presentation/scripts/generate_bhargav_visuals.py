@@ -91,7 +91,7 @@ def slide1_title() -> None:
     ax.text(
         1.4, 5.7,
         "Neural Network-Based Intrusion Detection Systems",
-        color=TEXT_MAIN, fontsize=28, fontweight="bold", va="center",
+        color=TEXT_MAIN, fontsize=22, fontweight="bold", va="center",
     )
     ax.text(
         1.4, 5.0,
@@ -283,26 +283,45 @@ def slide14_challenges() -> None:
     ]
 
     # Two-column layout: 3 left, 2 right
-    col_x = [1.0, 8.4]
-    row_y = [6.0, 4.0, 2.0]
+    # Axis: ylim(0,9), divider at y=7.9 → usable area: 0.3 – 7.75
+    # Left col: 3 cards filling the full usable height
+    # Right col: 2 cards vertically centered on the same span
+    col_x  = [0.4, 8.2]
+    col_w  = 7.3
+    BOTTOM = 0.35
+    TOP    = 7.75
 
-    positions = [
-        (col_x[0], row_y[0]),
-        (col_x[0], row_y[1]),
-        (col_x[0], row_y[2]),
-        (col_x[1], row_y[0]),
-        (col_x[1], row_y[1]),
+    panel_h_L = (TOP - BOTTOM - 2 * 0.25) / 3   # ≈ 2.27
+    gap_L     = 0.25
+
+    # Left column row bottoms (top card first)
+    left_rows = [
+        TOP - panel_h_L,
+        TOP - panel_h_L - (panel_h_L + gap_L),
+        BOTTOM,
     ]
 
-    for (glyph, color, title, body), (x, y) in zip(items, positions):
-        # Icon circle
-        _panel(ax, x, y, 6.5, 1.6, color)
-        _icon_circle(ax, x + 0.6, y + 0.8, 0.45, color, glyph)
-        # Title
-        ax.text(x + 1.5, y + 1.1, title, fontsize=15,
+    # Right column: 2 cards, same gap, centered on [BOTTOM, TOP]
+    total_right = 2 * panel_h_L + gap_L
+    r_start = BOTTOM + (TOP - BOTTOM - total_right) / 2
+    right_rows = [r_start + panel_h_L + gap_L, r_start]
+
+    positions = [
+        (col_x[0], left_rows[0]),
+        (col_x[0], left_rows[1]),
+        (col_x[0], left_rows[2]),
+        (col_x[1], right_rows[0]),
+        (col_x[1], right_rows[1]),
+    ]
+
+    panel_hs = [panel_h_L, panel_h_L, panel_h_L, panel_h_L, panel_h_L]
+
+    for (glyph, color, title, body), (x, y), ph in zip(items, positions, panel_hs):
+        _panel(ax, x, y, col_w, ph, color)
+        _icon_circle(ax, x + 0.7, y + ph / 2, 0.52, color, glyph)
+        ax.text(x + 1.65, y + ph * 0.72, title, fontsize=13,
             fontweight="bold", color=TEXT_MAIN, va="center")
-        # Body
-        ax.text(x + 1.5, y + 0.35, body, fontsize=11,
+        ax.text(x + 1.65, y + ph * 0.32, body, fontsize=10,
             color=TEXT_MID, va="center")
 
     _save(fig, "slide14_challenges.png")
