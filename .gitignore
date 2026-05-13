@@ -218,6 +218,15 @@ data/processed/*
 
 # Results — model checkpoints (can be large)
 results/models/*
+
+# LaTeX report build artifacts
+docs/reports/build/
+docs/reports/*.aux
+docs/reports/*.fdb_latexmk
+docs/reports/*.fls
+docs/reports/*.log
+docs/reports/*.out
+docs/reports/*.toc
 !results/models/.gitkeep
 
 # Results — generated figures and tables (regenerable)
