@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 
-\usepackage[margin=1in]{geometry}
+\usepackage[margin=0.8in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
@@ -30,10 +30,12 @@ This project is relevant because it evaluates that risk in a controlled IDS sett
 \subsection{Dataset Preparation}
 
 We used the NSL-KDD dataset, a benchmark dataset for intrusion detection research containing labeled network connection records. The original class labels were converted into binary targets: normal traffic was mapped to 1, while all attack classes were mapped to 0. This formulation matches the core objective of normal-versus-attack classification under adversarial perturbations.
+The final dataset contained 151,165 records. After conversion into binary labels, it remained reasonably balanced, with approximately 53.45\% normal traffic and 46.55\% attack traffic. This helped confirm that clean-data performance was not being driven by a severe class-imbalance artifact.
 
 \subsection{Preprocessing}
 
 The dataset contains both continuous features, such as duration and byte counts, and categorical features, such as protocol type and service. Categorical features were one-hot encoded and continuous features were standardized. During adversarial evaluation, perturbations were applied only to continuous features, while one-hot categorical columns were preserved so that perturbed samples remained semantically valid. After adversarial perturbation, continuous features were clipped to observed training-set bounds to keep generated samples within realistic ranges.
+After preprocessing, each network connection was represented as a 120-dimensional numeric feature vector combining scaled continuous features and one-hot encoded categorical features.
 
 \subsection{Data Splitting}
 
@@ -79,6 +81,7 @@ PR-AUC & 0.9998 \\
 \end{table}
 
 The adversarially trained model achieved a clean accuracy of 99.56\%, showing that robustness improvements did not come with a meaningful loss in standard predictive performance.
+The high clean-data performance is also expected for this dataset because NSL-KDD contains strong, learnable feature patterns. In particular, features such as service, flag, byte count, and error-rate features provide strong indicators of attack versus normal behavior. That makes the dataset a useful baseline for robustness testing because the later drops in accuracy can be attributed to adversarial perturbations rather than to an already weak classifier.
 
 \subsection{Baseline vs. Adversarially Trained Model}
 
