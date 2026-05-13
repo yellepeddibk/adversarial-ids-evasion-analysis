@@ -1,13 +1,13 @@
 """
-Generate visuals for Bhargav's slides in the project presentation.
+Generate project presentation visuals for selected slides.
 
 Slides covered:
-  - Slide 1  : Title card
-  - Slide 2  : Motivation diagram (normal/attack traffic vs perturbed evasion)
-  - Slide 3  : Project objectives pipeline
-  - Slide 14 : Challenges & Limitations (icon + text layout)
+    - Slide 1  : Title card
+    - Slide 2  : Motivation diagram (normal/attack traffic vs perturbed evasion)
+    - Slide 3  : Project objectives pipeline
+    - Slide 14 : Challenges & Limitations (icon + text layout)
 
-Outputs PNGs into presentation/visuals/.
+Outputs PNGs into docs/visuals/.
 """
 
 from __future__ import annotations

@@ -4,324 +4,121 @@
 
 **Authors:** Conrad Miller, Prathik Bengaluru Prabhakara, Bhargav Yellepeddi
 
----
+# Adversarial Robustness Analysis of Neural Network-Based Intrusion Detection Systems
 
-## Table of Contents
+> A PyTorch-based cybersecurity project that measures how white-box adversarial attacks degrade intrusion detection performance and how adversarial training restores robustness.
 
-- [Introduction](#introduction)
-- [Project Structure](#project-structure)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Dataset](#dataset)
-- [Methodology](#methodology)
-  - [Data Preprocessing](#data-preprocessing)
-  - [Model Architecture](#model-architecture)
-  - [Training Procedure](#training-procedure)
-  - [Adversarial Attacks](#adversarial-attacks)
-  - [Adversarial Training (Defense)](#adversarial-training-defense)
-  - [Robustness Evaluation & ε-Sweep](#robustness-evaluation--ε-sweep)
-  - [Evaluation Metrics](#evaluation-metrics)
-- [Usage](#usage)
-  - [Train the Baseline Model](#train-the-baseline-model)
-  - [Train the Adversarially Robust Model](#train-the-adversarially-robust-model)
-  - [Run Adversarial Evaluation](#run-adversarial-evaluation)
-  - [Run ε-Sweep Experiments](#run-ε-sweep-experiments)
-- [Expected Results](#expected-results)
-- [Tools & Computation](#tools--computation)
-- [Literature & References](#literature--references)
-- [Contributing](#contributing)
-- [License](#license)
+**Authors:** Conrad Miller, Prathik Bengaluru Prabhakara, Bhargav Yellepeddi
 
----
+## Overview
 
-## Introduction
+This repository studies adversarial evasion against a neural network intrusion detection system trained on the NSL-KDD dataset. The project uses a Multi-Layer Perceptron (MLP) to classify network traffic as normal or attack, then evaluates the model under Fast Gradient Sign Method (FGSM) and Projected Gradient Descent (PGD) attacks across multiple perturbation strengths.
 
-Machine learning has become widely used in cybersecurity for detecting network intrusions and malicious activity. However, neural networks are vulnerable to **adversarial attacks**, where small, carefully crafted perturbations to input features can cause misclassification. In a cybersecurity setting, this could allow attackers to evade detection systems.
+To improve robustness, the project also trains a second model with adversarial training and compares both models on clean and adversarial examples. The end result is a compact, reproducible case study of the accuracy-versus-robustness trade-off in machine learning security.
 
-This project develops a machine learning-based **intrusion detection system (IDS)** using a Multi-Layer Perceptron (MLP) trained on the **NSL-KDD dataset** to classify network traffic as *normal* or *attack*. We evaluate the model's vulnerability to white-box adversarial attacks — specifically **FGSM** and **PGD** — and analyze its robustness under different perturbation levels (ε).
+## Key Results
 
-To improve security, we implement **adversarial training** as a defense mechanism and compare the performance of a baseline model with an adversarially trained model. The project aims to demonstrate the trade-off between accuracy and robustness and assess how adversarial defenses strengthen machine learning systems in cybersecurity applications.
+- The baseline model reaches 99.53% clean test accuracy.
+- The adversarially trained model preserves clean accuracy at 99.56%.
+- At epsilon = 0.30, baseline accuracy drops to 65.14% under FGSM and 56.44% under PGD.
+- At the same epsilon, adversarial training improves robust accuracy to 96.87% under FGSM and 95.63% under PGD.
+- PGD is consistently stronger than FGSM, while adversarial training delivers large robustness gains with almost no clean-accuracy penalty.
 
----
+## Method Summary
 
-## Project Structure
+1. Preprocess NSL-KDD with one-hot encoding for categorical features and standardization for continuous features.
+2. Train a two-hidden-layer MLP for binary normal-versus-attack classification.
+3. Generate white-box adversarial examples with FGSM and PGD under an L-infinity constraint.
+4. Restrict perturbations to continuous features and clip them to valid training ranges.
+5. Train a second model with FGSM-based adversarial training and compare clean and robust accuracy across an epsilon sweep.
 
-```
+## Selected Results
+
+| Epsilon | Baseline FGSM | Adv. Trained FGSM | Baseline PGD | Adv. Trained PGD |
+|---|---:|---:|---:|---:|
+| 0.00 | 99.53% | 99.56% | 99.53% | 99.56% |
+| 0.10 | 96.78% | 99.20% | 96.50% | 99.13% |
+| 0.30 | 65.14% | 96.87% | 56.44% | 95.63% |
+
+## Repository Layout
+
+```text
 adversarial-ids-evasion-analysis/
-│
-├── .github/
-│   └── pull_request_template.md  # PR template for contributions
-│
-├── configs/
-│   └── default.yaml              # Hyperparameters & experiment configuration
-│
-├── data/
-│   ├── raw/                      # Original NSL-KDD dataset files
-│   │   └── .gitkeep
-│   └── processed/                # Preprocessed / encoded data
-│       └── .gitkeep
-│
-├── notebooks/                    # Jupyter notebooks for exploration & analysis
-│   └── .gitkeep
-│
-├── results/
-│   ├── figures/                  # Generated plots & visualizations
-│   │   └── .gitkeep
-│   ├── tables/                   # Performance comparison tables
-│   │   └── .gitkeep
-│   └── models/                   # Saved model checkpoints (.pt files)
-│       └── .gitkeep
-│
-├── scripts/
-│   ├── train_baseline.py         # Train the baseline MLP classifier
-│   ├── train_adversarial.py      # Train the adversarially robust MLP
-│   ├── evaluate.py               # Evaluate model(s) on clean & adversarial data
-│   └── run_epsilon_sweep.py      # Run ε-sweep robustness experiments
-│
-├── src/
-│   ├── __init__.py
-│   ├── data/
-│   │   ├── __init__.py
-│   │   ├── loader.py             # Dataset loading utilities
-│   │   └── preprocessing.py      # Feature encoding, scaling, splitting
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── mlp.py                # MLP architecture definition
-│   ├── attacks/
-│   │   ├── __init__.py
-│   │   ├── fgsm.py               # FGSM attack implementation
-│   │   └── pgd.py                # PGD attack implementation
-│   ├── defenses/
-│   │   ├── __init__.py
-│   │   └── adversarial_training.py  # Adversarial training logic
-│   ├── evaluation/
-│   │   ├── __init__.py
-│   │   ├── metrics.py            # Accuracy, robust accuracy metrics
-│   │   └── epsilon_sweep.py      # ε-sweep evaluation loop
-│   └── utils/
-│       ├── __init__.py
-│       └── visualization.py      # Plotting & figure-generation utilities
-│
-├── tests/                        # Unit tests
-│   └── .gitkeep
-│
-├── .gitignore                    # Git ignore rules
-├── CONTRIBUTING.md               # Contribution guidelines
-├── LICENSE                       # Project license
-├── README.md                     # This file
-└── requirements.txt              # Python dependencies
+├── configs/          # Experiment configuration
+├── data/             # Raw and processed datasets
+├── docs/             # Public-facing project documents and visuals
+├── notebooks/        # Exploration and analysis notebooks
+├── results/          # Figures, tables, and saved model checkpoints
+├── scripts/          # Training and evaluation entry points
+├── src/              # Core project code
+├── tests/            # Test scaffolding
+├── ProjectCode.ipynb # Consolidated notebook workflow
+└── README.md
 ```
 
-### Key Directories
-
-| Directory | Purpose |
-|---|---|
-| `configs/` | YAML configuration files for hyperparameters (learning rate, epochs, ε values, etc.) |
-| `data/raw/` | Store the original NSL-KDD `.csv` / `.arff` files (not committed to Git) |
-| `data/processed/` | Cached preprocessed tensors / DataFrames |
-| `notebooks/` | Jupyter notebooks for EDA, result visualization, and experimentation |
-| `results/figures/` | Saved plots (accuracy vs. ε curves, confusion matrices, etc.) |
-| `results/tables/` | Markdown / CSV performance tables |
-| `results/models/` | Serialized PyTorch model checkpoints (`.pt`) |
-| `scripts/` | Top-level runnable scripts for training, evaluation, and sweeps |
-| `src/` | Core library code — data loading, model, attacks, defenses, evaluation, utils |
-| `tests/` | Unit and integration tests |
-
----
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
 - Python 3.9+
-- pip (or conda)
+- pip
 - Git
 
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/<org>/adversarial-ids-evasion-analysis.git
 cd adversarial-ids-evasion-analysis
 
-# Create and activate a virtual environment
 python -m venv .venv
 # Windows
 .venv\Scripts\activate
 # macOS / Linux
 source .venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
 ```
 
 ### Dataset
 
-This project uses the **NSL-KDD** dataset. Download the dataset files and place them in `data/raw/`:
+Download the NSL-KDD dataset from the [official dataset page](https://www.unb.ca/cic/datasets/nsl.html) or a trusted mirror and place the files in `data/raw/`.
 
-1. Obtain the dataset from the [official NSL-KDD page](https://www.unb.ca/cic/datasets/nsl.html) or [Kaggle mirror](https://www.kaggle.com/datasets/hassan06/nslkdd).
-2. Place `KDDTrain+.csv` and `KDDTest+.csv` (or equivalent) into `data/raw/`.
+Expected inputs:
 
-> **Note:** Raw data files are excluded from version control via `.gitignore`.
+- `data/raw/KDDTrain+.csv`
+- `data/raw/KDDTest+.csv`
 
----
+Raw data is excluded from version control.
 
-## Methodology
-
-### Data Preprocessing
-
-The NSL-KDD dataset contains both **continuous** features (e.g., duration, source bytes, destination bytes) and **categorical** features (e.g., protocol type, service type).
-
-- **Continuous features** are standardized to zero mean and unit variance so that adversarial perturbations bounded by ε are applied proportionally across features.
-- **Categorical features** are converted using **one-hot encoding**. During adversarial attacks, only continuous features are perturbed; one-hot encoded features remain fixed to preserve valid network configurations.
-- After adversarial sample generation, continuous features are **clipped** to a valid range (training min/max) to maintain realistic inputs.
-- The classification task is formulated as **binary**: all attack categories → label `0` (attack), normal traffic → label `1` (normal).
-
-### Model Architecture
-
-We implement a **Multi-Layer Perceptron (MLP)**:
-
-| Layer | Details |
-|---|---|
-| Input | Number of processed features (after encoding) |
-| Hidden 1 | 64 neurons, ReLU activation |
-| Hidden 2 | 32 neurons, ReLU activation |
-| Output | 1 neuron, Sigmoid activation (binary classification) |
-
-The sigmoid output produces a probability representing the likelihood of normal behavior.
-
-### Training Procedure
-
-| Component | Choice |
-|---|---|
-| **Loss Function** | Binary Cross-Entropy (BCE) |
-| **Optimizer** | Adam (adaptive learning rate) |
-| **Training Split** | ~70% train / ~15% validation / ~15% test |
-| **Early Stopping** | Optional, based on validation loss |
-
-- The **training set** is used to learn model parameters.
-- The **validation set** is used for hyperparameter tuning and early stopping.
-- The **test set** is reserved strictly for final evaluation and adversarial robustness analysis.
-
-### Adversarial Attacks
-
-Two white-box gradient-based attacks under an **L∞ norm** constraint:
-
-| Attack | Type | Description |
-|---|---|---|
-| **FGSM** | Single-step | One gradient-sign update scaled by ε |
-| **PGD** | Iterative | Multiple smaller steps with projection back into the ε-ball |
-
-Both attacks perturb input features in the direction that **maximizes the model's loss**. No individual feature can be modified beyond ±ε.
-
-### Adversarial Training (Defense)
-
-A second MLP is trained using **adversarial examples generated via FGSM** during training. The training set is augmented with adversarially perturbed samples to encourage the model to learn more robust decision boundaries.
-
-**Models compared:**
-
-| Model | Training Data |
-|---|---|
-| Baseline MLP | Clean training data only |
-| Adversarially Trained MLP | Clean + FGSM-perturbed training data |
-
-### Robustness Evaluation & ε-Sweep
-
-Robustness is analyzed across multiple perturbation strengths:
-
-$$\varepsilon \in \{\varepsilon_1, \varepsilon_2, \varepsilon_3, \ldots\}$$
-
-For each ε value:
-1. Generate FGSM adversarial examples
-2. Generate PGD adversarial examples
-3. Evaluate both the baseline and adversarially trained models
-
-### Evaluation Metrics
-
-| Metric | Description |
-|---|---|
-| **Clean Accuracy** | Accuracy on unperturbed test data |
-| **Robust Accuracy** | Accuracy on adversarially perturbed test data |
-| **Accuracy vs. ε Curves** | Plots showing degradation as ε increases |
-
-Results will be presented in tables and plots for both FGSM and PGD across both models.
-
----
-
-## Usage
-
-All runnable scripts are in the `scripts/` directory. Configuration is loaded from `configs/default.yaml`.
-
-### Train the Baseline Model
+### Run Experiments
 
 ```bash
 python scripts/train_baseline.py --config configs/default.yaml
-```
-
-### Train the Adversarially Robust Model
-
-```bash
 python scripts/train_adversarial.py --config configs/default.yaml
-```
-
-### Run Adversarial Evaluation
-
-```bash
 python scripts/evaluate.py --model results/models/baseline.pt --config configs/default.yaml
 python scripts/evaluate.py --model results/models/adversarial.pt --config configs/default.yaml
-```
-
-### Run ε-Sweep Experiments
-
-```bash
 python scripts/run_epsilon_sweep.py --config configs/default.yaml
 ```
 
-> Plots and tables are saved to `results/figures/` and `results/tables/`, respectively.
+## Documentation
 
----
+- [docs/README.md](docs/README.md) for project documents, visuals, and report assets.
+- [docs/reports/final_project_report.tex](docs/reports/final_project_report.tex) for the final report source.
+- [docs/reports/final_project_report.pdf](docs/reports/final_project_report.pdf) for the rendered report.
+- [docs/scripts/generate_presentation_visuals.py](docs/scripts/generate_presentation_visuals.py) for the matplotlib slide visual generator.
 
-## Expected Results
+## Limitations
 
-- The **baseline model** is expected to show significant accuracy degradation as ε increases under both FGSM and PGD attacks.
-- The **adversarially trained model** is expected to exhibit improved robust accuracy at the cost of slightly reduced clean accuracy.
-- Final deliverables include **performance tables** and **visualizations** illustrating robustness trends across ε values, along with an analysis of the **accuracy–robustness trade-off** in intrusion detection systems.
-
----
-
-## Tools & Computation
-
-| Category | Tools |
-|---|---|
-| **Data Processing** | pandas, NumPy, scikit-learn |
-| **Deep Learning** | PyTorch |
-| **Adversarial Attacks** | Custom FGSM/PGD implementations (PyTorch) |
-| **Visualization** | Matplotlib, seaborn |
-| **Configuration** | PyYAML |
-| **Environment** | Python 3.9+, CPU (GPU optional) |
-
-Experiments will be conducted on standard personal computing environments using CPU, with optional GPU acceleration for faster training and attack generation.
-
----
-
-## Literature & References
-
-1. **Goodfellow, I. J., Shlens, J., & Szegedy, C.** (2015). *Explaining and Harnessing Adversarial Examples.* ICLR 2015. [arXiv:1412.6572](https://arxiv.org/abs/1412.6572)
-2. **Cinà, A. E., et al.** (2023). *Wild Patterns Reloaded: A Survey of Machine Learning Security against Training Data Poisoning.* [arXiv:2205.01992](https://arxiv.org/abs/2205.01992)
-3. **Costa, V. G., et al.** (2024). *How Deep Learning Sees the World: A Survey on Adversarial Attacks & Defenses.*
-4. **Li, Y., et al.** (2022). *A Review of Adversarial Attack and Defense for Classification Methods.*
-5. **Li, et al.** *Adversarial Defense in Modulation Recognition via Diffusion and Segment-Wise Classification (FlowSlicer).*
-6. **NSL-KDD Dataset** — Canadian Institute for Cybersecurity, University of New Brunswick. [https://www.unb.ca/cic/datasets/nsl.html](https://www.unb.ca/cic/datasets/nsl.html)
-
----
+- The evaluation uses a single dataset: NSL-KDD.
+- Perturbations are restricted to continuous features, which preserves feature validity but may understate worst-case vulnerability.
+- The experiments focus on one architecture, an MLP, rather than a broader model family.
+- PGD attacks and adversarial training increase runtime cost compared with clean-only evaluation.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to this project, including branching conventions, code style, and the pull request process.
-
----
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines and workflow expectations.
 
 ## License
 
 This project is licensed under the terms of the [MIT License](LICENSE).
+| `results/figures/` | Saved plots (accuracy vs. ε curves, confusion matrices, etc.) |
