@@ -5,6 +5,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage{hyperref}
 
 \title{Final Project Report\\Adversarial Robustness Analysis of Neural Network-Based Intrusion Detection Systems Using FGSM and PGD Attacks}
@@ -56,6 +57,23 @@ We also implemented Projected Gradient Descent (PGD), an iterative variant of FG
 \subsection{Adversarial Training}
 
 To improve robustness, we trained a second MLP using adversarial training. During each training batch, FGSM adversarial examples were generated on the fly using the current model weights with $\varepsilon = 0.1$. Clean samples and adversarial samples were then combined into a single training batch, effectively doubling the batch size from 64 to 128. This process encouraged the model to learn decision boundaries that were less sensitive to small adversarial perturbations.
+
+\section{Adversarial ML Model Architecture}
+
+Figure~\ref{fig:architecture} illustrates the end-to-end pipeline used in this project, from dataset ingestion through final evaluation. The architecture consists of five major stages: data preparation, model training, adversarial example generation, validity enforcement, and comparative evaluation.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{docs/visuals/slide03_objectives.png}
+\caption{End-to-end adversarial ML pipeline for intrusion detection. Solid arrows indicate the primary data flow, while the stages summarize how clean training, adversarial generation, defense, and final evaluation connect across the workflow.}
+\label{fig:architecture}
+\end{figure}
+
+The pipeline begins with the NSL-KDD dataset, which is preprocessed by one-hot encoding categorical features, standardizing continuous features, and mapping the original labels to a binary normal-versus-attack target. The processed data is then split into stratified train, validation, and test sets.
+
+From the training data, two models are produced. The baseline MLP is trained on clean normalized samples only. The adversarially trained MLP is trained on a combined batch of clean samples and FGSM-generated adversarial samples created on the fly at $\varepsilon = 0.1$. Both models share the same architecture: an input layer matching the number of processed features, a 64-neuron hidden layer with ReLU activation, a 32-neuron hidden layer with ReLU activation, and a single-logit output layer optimized with \texttt{BCEWithLogitsLoss} and Adam.
+
+At evaluation time, adversarial examples are generated from the held-out test set using both FGSM and PGD under $L_{\infty}$ constraints across multiple $\varepsilon$ values. A validity constraint module ensures that perturbations are applied only to continuous features, one-hot categorical encodings remain intact, and all perturbed continuous values are clipped to their observed training-set bounds. Both the baseline and adversarially trained models are then evaluated on these constrained adversarial inputs to produce the comparative robustness results reported in Table~\ref{tab:comparison}.
 
 \section{Results and Discussion}
 
