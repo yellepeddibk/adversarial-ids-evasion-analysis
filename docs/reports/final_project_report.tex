@@ -8,7 +8,9 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 
-\title{Final Project Report\\Adversarial Robustness Analysis of Neural Network-Based Intrusion Detection Systems Using FGSM and PGD Attacks}
+\title{Final Project Report \\
+CPRE 5600:\\
+Adversarial Robustness Analysis of Neural Network-Based Intrusion Detection Systems Using FGSM and PGD Attacks}
 \author{Conrad Miller \and Prathik Bengaluru Prabhakara \and Bhargav Yellepeddi}
 \date{May 2026}
 
@@ -62,10 +64,10 @@ To improve robustness, we trained a second MLP using adversarial training. Durin
 
 Figure~\ref{fig:architecture} illustrates the end-to-end pipeline used in this project, from dataset ingestion through final evaluation. The architecture consists of five major stages: data preparation, model training, adversarial example generation, validity enforcement, and comparative evaluation.
 
-\begin{figure}[ht]
+\begin{figure}[htbp]
 \centering
-\includegraphics[width=\textwidth]{docs/visuals/slide03_objectives.png}
-\caption{End-to-end adversarial ML pipeline for intrusion detection. Solid arrows indicate the primary data flow, while the stages summarize how clean training, adversarial generation, defense, and final evaluation connect across the workflow.}
+\includegraphics[width=\textwidth]{../visuals/architecture_diagram.png}
+\caption{End-to-end adversarial ML pipeline for intrusion detection. Solid arrows indicate the primary data flow; dashed arrows indicate adversarial sample generation during training and evaluation.}
 \label{fig:architecture}
 \end{figure}
 
@@ -81,7 +83,7 @@ At evaluation time, adversarial examples are generated from the held-out test se
 
 After training, the baseline model achieved the following performance on the clean, unperturbed test set.
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \begin{tabular}{lr}
 \toprule
@@ -105,7 +107,7 @@ The high clean-data performance is also expected for this dataset because NSL-KD
 
 Table~\ref{tab:comparison} compares both models under FGSM and PGD across the full epsilon sweep.
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \small
 \begin{tabular}{lcccc}
@@ -128,7 +130,7 @@ $\varepsilon$ & Base FGSM & Adv FGSM & Base PGD & Adv PGD \\
 
 To make the effect of adversarial training explicit, Table~\ref{tab:gains} reports the improvement in accuracy over the baseline in percentage points.
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \small
 \begin{tabular}{lcc}
@@ -163,6 +165,7 @@ This project evaluated the adversarial robustness of a neural network-based intr
 
 Several extensions could improve the project and strengthen the conclusions. First, the same evaluation should be repeated on additional intrusion detection datasets to test whether the observed robustness gains generalize beyond NSL-KDD. Second, future work should compare multiple model architectures, including CNNs, transformers, and newer tabular deep learning models, to determine whether robustness trends depend on the underlying model family. Third, adversarial training could be expanded by tuning the training epsilon and by incorporating stronger iterative attacks such as PGD during training rather than FGSM alone. Fourth, additional defenses such as feature denoising, ensemble methods, or certified robustness approaches could be evaluated. Finally, future work should measure computational overhead, inference latency, and deployment trade-offs more directly to better assess practicality in real-world IDS pipelines.
 
+\newpage
 \begin{thebibliography}{9}
 
 \bibitem{goodfellow2015}
